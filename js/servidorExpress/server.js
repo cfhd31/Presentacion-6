@@ -4,7 +4,7 @@ const PORT = 8080;
 const app = express();
 
 app.get('/productos', (req,res) => {
-    res.send('<h1 style="color:blue;">Lista de productos INICIO</h1>');
+    res.send('<h1 style="color:blue;">Lista de productos</h1>');
 });
 app.get('/', (req,res) => {
     res.send('<h1 style="color:blue;">Bienvenido al servidor Express</h1>');
