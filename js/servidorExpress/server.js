@@ -1,30 +1,82 @@
 const express = require('express');
-const PORT = 8080;
+const fs = require("fs");
+const llamado = require("../index.js");
 
+
+/*------------Instancia de express--------------------------*/
 const app = express();
 
-app.get('/productos', (req,res) => {
-    res.send('<h1 style="color:blue;">Lista de productos</h1>');
-});
+/*-----------------Middlewares------------------------------*/
+visitas = 0
+
+const getProductos = () => {
+    let ruta = "../archivos/productos.txt";
+    try {
+        Productos = fs.readFileSync(ruta, "utf-8");
+        return JSON.parse(Productos);
+    } catch (error) {
+        return []
+    }
+};
+
+const getNumAleatorio = () => {
+    let Productos = getProductos();
+    const numID = Productos.map(({ id }) => id);
+    let aleatorio = Math.floor(Math.random() * numID.length);
+    return numID[aleatorio];
+};
+
+const getProductoAleatorio = (numero) => {
+    let Productos = getProductos();
+    const index = Productos.findIndex((x) => x.id === numero);
+    return Productos[index];
+};
+
+
+/*----------------------RUTAS---------------------------*/
 app.get('/', (req,res) => {
-    res.send('<h1 style="color:blue;">Bienvenido al servidor Express</h1>');
+    visitas++;
+    res.send(`<h1 style="color:blue;">Bienvenido al INICIO del servidor Express</h1><br><h1 style="color:green;">Numero de Visitas ${visitas}</h1>`);
 });
-app.get('/clientes', (req,res) => {
-    //res.send('<h1 style="color:blue;">Lista de clientes info</h1>');
-    //res.status(200).json({code:200, data:'Datos de respuesta'});
-    res.json({code:200, data:'Datos de respuesta aaa'});
+
+app.get("/productos", (req, res) => {
+    try {
+        res.write(JSON.stringify(getProductos()));
+        res.end();
+    } catch (error) {
+        console.log("Se ha producido un error", error);
+        res.send({ code: 400, failed: "Error"});
+    }
 });
-app.post('/productos', (req, res) => {
-    res.send('<h1 style="color:green;">Agregar un producto</h1>');
+
+app.get("/productoRandom", (req, res) => {
+    try {
+        res.json(getProductoAleatorio(getNumAleatorio()));
+        res.end();
+    } catch (error) {
+        console.log("Se ha producido un error", error);
+        res.send({ code: 400, failed: "Error"});
+    }
 });
-app.put('/productos', (req, res) => {
-    res.send('<h1 style="color:green;">Modifica un producto</h1>');
+
+app.get("/getAll", (req, res) => {
+    try {
+        let archivo = new llamado("productos");
+        res.send(archivo.getAll());
+        res.end();
+    } catch (error) {
+        console.log("Se ha producido un error", error);
+        res.send({ code: 400, failed: "Error"});
+    }
 });
-app.delete('/productos', (req, res) => {
-    res.send('<h1 style="color:green;">Elimina un producto</h1>');
-})
+
+/*-----------------SERVIDOR--------------------------*/
+const PORT = 8080;
 
 const server = app.listen(PORT, () => {
-    console.log(`Servidor http escuchando en el puerto ${server.address().port}`)
+    console.log(`Servidor escuchando en puerto ${server.address().port}`)
 });
-server.on("error", error => console.log(`Error en servidor ${error}`))
+
+server.on("error", error => {
+    console.log(`Error en servidor ${error}`)
+});

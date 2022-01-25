@@ -12,7 +12,6 @@ const server = http.createServer((req, res) => {
 
         res.end(JSON.stringify(msg, null, 2));
     }
-
 });
 
 const connectedServer = server.listen(8080, ()=>{
