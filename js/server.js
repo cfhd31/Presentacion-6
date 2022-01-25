@@ -1,19 +1,84 @@
-const http = require('http');
-const moment = require('moment');
+const express = require('express');
+const fs = require("fs");
+const Contenedor = require("./index.js");
 
-const server = http.createServer((req, res) => {
-    if (req.url == '/') {
-        let msg = {code:201, msg:'Esta pagina es HOME'}
-        res.end(JSON.stringify(msg, null, 2));
-    } else if(req.url == '/coders') {
-        let fecha = new Date().getHours()
-        let fecha2 = moment(new Date(),"DD/MM/YYYY HH:mm:ss");
-        let msg = {code:201, msg:'Hola Coders al mundo de los servicios web Node.js!', fecha, fecha2}
 
-        res.end(JSON.stringify(msg, null, 2));
+/*------------Instancia de express--------------------------*/
+const app = express();
+
+/*-----------------------------------------------*/
+visitas = 0
+
+const getProductos = () => {
+    let ruta = "./archivos/productos.txt";
+    try {
+        Productos = fs.readFileSync(ruta, "utf-8");
+        return JSON.parse(Productos);
+    } catch (error) {
+        return []
+    }
+};
+
+const getNumAleatorio = () => {
+    let Productos = getProductos();
+    const numID = Productos.map(({ id }) => id);
+    let aleatorio = Math.floor(Math.random() * numID.length);
+    return numID[aleatorio];
+};
+
+const getProductoAleatorio = (numero) => {
+    let Productos = getProductos();
+    const index = Productos.findIndex((x) => x.id === numero);
+    return Productos[index];
+};
+
+
+/*----------------------RUTAS---------------------------*/
+app.get('/', (req,res) => {
+    visitas++;
+    res.send(`<h1 style="color:blue;">Bienvenido al INICIO del servidor Express</h1><br><h1 style="color:green;">Numero de Visitas ${visitas}</h1>`);
+});
+
+app.get("/productos", (req, res) => {
+    try {
+        res.write(JSON.stringify(getProductos()));
+        res.end();
+    } catch (error) {
+        console.log("Se ha producido un error", error);
+        res.send({ code: 400, failed: "Error"});
     }
 });
 
-const connectedServer = server.listen(8080, ()=>{
-    console.log(`Servidor escucha un puerto ${connectedServer.address().port}`)
+app.get("/productoRandom", (req, res) => {
+    try {
+        res.json(getProductoAleatorio(getNumAleatorio()));
+        res.end();
+    } catch (error) {
+        console.log("Se ha producido un error", error);
+        res.send({ code: 400, failed: "Error"});
+    }
+});
+
+app.get("/getAll", (req, res) => {
+    try {
+        const archivo = new Contenedor("productos");
+        
+        res.send(archivo.getAll());
+        console.log(archivo.getAll());
+        res.end();
+    } catch (error) {
+        console.log("Se ha producido un error", error);
+        res.send({ code: 400, failed: "Error"});
+    }
+});
+
+/*-----------------SERVIDOR--------------------------*/
+const PORT = 8080;
+
+const server = app.listen(PORT, () => {
+    console.log(`Servidor escuchando en puerto ${server.address().port}`)
+});
+
+server.on("error", error => {
+    console.log(`Error en servidor ${error}`)
 });

@@ -5,12 +5,12 @@ class Contenedor {
     this.ruta = "./archivos/" + nombreArchivo + ".txt";
 }
 
-async getAll(){
+getAll(){
     try {
-        const nuevoObjeto = await fs.promises.readFile(this.ruta, "utf-8")
+        const nuevoObjeto = fs.readFileSync(this.ruta, "utf-8")
         return JSON.parse(nuevoObjeto)
     }catch(error){
-        return []
+        return ["no llego nada"]
     }
 }
 
@@ -81,6 +81,8 @@ deleteAll() {
 }
 
 let archivo = new Contenedor("productos");
+
+module.exports = Contenedor
 
 /*archivo.save({
     nave: "sacaca",
